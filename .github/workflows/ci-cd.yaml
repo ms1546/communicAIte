@@ -1,0 +1,50 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Install dependencies
+        run: go mod tidy
+
+      - name: Run tests
+        run: go test ./tests -v
+
+  # deploy:
+  #   needs: build
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
+
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v1
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ap-northeast-1
+
+  #     - name: Deploy to AWS Elastic Beanstalk
+  #       run: |
+  #         zip deployment.zip -r *
+  #         aws s3 cp deployment.zip s3://app-data/deployment.zip
+  #         aws elasticbeanstalk create-application-version --application-name communicAIte --version-label v${{ github.sha }} --source-bundle S3Bucket="app-data",S3Key="deployment.zip"
+  #         aws elasticbeanstalk update-environment --environment-name my-app-env --version-label v${{ github.sha }}
